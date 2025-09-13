@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Signup: React.FC = () => {
   const [userType, setUserType] = useState<"particulier" | "professionnel">(
@@ -15,8 +16,8 @@ const Signup: React.FC = () => {
     entreprise: "",
   });
 
-  // ✅ nouvel état pour afficher le message de confirmation
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -27,9 +28,19 @@ const Signup: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Ici tu peux envoyer les données au backend si besoin
-    setIsConfirmed(true); // ➡️ active l'affichage du message "Inscription réussie"
+    console.log("Inscription :", { ...formData, userType });
+    setIsConfirmed(true);
   };
+
+  // Redirection automatique après succès
+  useEffect(() => {
+    if (isConfirmed) {
+      const timer = setTimeout(() => {
+        navigate("/");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isConfirmed, navigate]);
 
   return (
     <div className="max-w-lg mx-auto p-6 bg-white rounded-lg shadow-md mt-8">
@@ -37,10 +48,9 @@ const Signup: React.FC = () => {
         Inscription
       </h1>
 
-      {/* ✅ Si déjà confirmé, afficher un message et ne plus montrer le formulaire */}
       {isConfirmed ? (
         <p className="text-green-600 text-center text-lg font-semibold">
-          ✅ Inscription réussie !
+          ✅ Inscription réussie ! <br /> Redirection vers l’accueil...
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -70,7 +80,7 @@ const Signup: React.FC = () => {
             />
           </div>
 
-          {/* Type d'utilisateur */}
+          {/* Type d’utilisateur */}
           <div>
             <label className="block mb-1 font-medium">Je suis :</label>
             <select
@@ -102,7 +112,9 @@ const Signup: React.FC = () => {
               </div>
 
               <div>
-                <label className="block mb-1 font-medium">Nom de l'entreprise</label>
+                <label className="block mb-1 font-medium">
+                  Nom de l'entreprise
+                </label>
                 <input
                   type="text"
                   name="entreprise"
@@ -154,7 +166,6 @@ const Signup: React.FC = () => {
             />
           </div>
 
-          {/* ✅ Nouveau bouton "Confirmer" */}
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"

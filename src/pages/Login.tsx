@@ -1,18 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLogged, setIsLogged] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // 👉 Ici tu mettras plus tard la vraie logique de vérification (API / Supabase / Firebase…)
-    // Pour l'instant on simule une connexion réussie :
-    console.log("Tentative de connexion avec :", { email, password });
+    console.log("Connexion :", { email, password });
     setIsLogged(true);
   };
+
+  // Redirection après succès
+  useEffect(() => {
+    if (isLogged) {
+      const timer = setTimeout(() => {
+        navigate("/");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLogged, navigate]);
 
   return (
     <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md mt-8">
@@ -22,7 +31,7 @@ const Login: React.FC = () => {
 
       {isLogged ? (
         <p className="text-green-600 text-center text-lg font-semibold">
-          ✅ Connexion réussie !
+          ✅ Connexion réussie ! <br /> Redirection vers l’accueil...
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
