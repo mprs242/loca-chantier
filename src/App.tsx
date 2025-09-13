@@ -1,21 +1,21 @@
-import { useState } from "react";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Header from "./components/Header";
+import Home from "./pages/Home";
+import ProductDetail from "./pages/ProductDetail";
+import About from "./pages/About"; // <-- import
 
-function App() {
-  const [count, setCount] = useState(0);
-
+const App: React.FC = () => {
   return (
-    <main className="flex flex-col items-center gap-8 py-16 max-w-[1280px] mx-auto">
-      <h1 className="text-4xl font-bold">Hello React & Tailwind!</h1>
-      <div className="flex flex-row items-center gap-6">
-        <button
-          className="bg-sky-300 px-3 py-2 rounded hover:bg-sky-400"
-          onClick={() => setCount(count + 1)}
-        >
-          Count: {count}
-        </button>
-      </div>
-    </main>
+    <Router>
+      <Header />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/product/:id" element={<ProductDetail />} />
+        <Route path="/about" element={<About />} /> {/* <-- nouvelle route */}
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
