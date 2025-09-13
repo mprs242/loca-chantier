@@ -12,11 +12,10 @@ const Header: React.FC = () => {
           <Link to="/login" className="mr-4 hover:underline">
             Connexion
           </Link>
-          <Link to="/signup" className="hover:underline">
-            Inscription
-          </Link>
           <Link to="/about" className="hover:underline">
             À propos de nous
+          </Link>
+          <Link to="/signup" className="hover:underline">Inscription
           </Link>
         </div>
       </nav>
