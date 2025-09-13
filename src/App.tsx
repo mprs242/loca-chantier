@@ -1,31 +1,36 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
-import Footer from "./components/Footer"; // <--- ajout
+import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
-import About from "./pages/About"; // <-- import
-import Signup from "./pages/Signup"; // <--- nouvel import
-import Login from "./pages/Login"; // <--- nouvel import
-import Contact from "./pages/Contact"; // <--- nouvel import
+import About from "./pages/About";
+import Signup from "./pages/Signup";
+import Login from "./pages/Login";
+import Contact from "./pages/Contact";
+import EspaceLoueur from "./pages/EspaceLoueur";
+import EspaceLocataire from "./pages/EspaceLocataire";
+import AjouterAnnonce from "./pages/AjouterAnnonce";
 
 const App: React.FC = () => {
   return (
-    <Router>
+    <>
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} /> {/* <-- nouvelle route */}
-        <Route path="/signup" element={<Signup />} />{" "}
-        {/* <--- nouvelle route */}
-        <Route path="/login" element={<Login />} /> {/* <--- nouvelle route */}
-        <Route path="/contact" element={<Contact />} /> {/* nouvelle route */}
+        <Route path="/about" element={<About />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/products" element={<Products />} />
         <Route path="/product/:id" element={<ProductDetail />} />
+        <Route path="/espace-loueur" element={<EspaceLoueur />} />
+        <Route path="/espace-locataire" element={<EspaceLocataire />} />
+        <Route path="/ajouter-annonce" element={<AjouterAnnonce />} />
       </Routes>
-      <Footer /> {/* <--- le footer sera toujours affiché */}
-    </Router>
+      <Footer />
+    </>
   );
 };
 

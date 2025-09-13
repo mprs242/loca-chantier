@@ -1,15 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import products from "../data/products";
+import { ProductContext } from "../context/ProductContext";
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { products } = useContext(ProductContext);
 
   const [showMessageBox, setShowMessageBox] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Trouver le produit par ID
+  // Chercher le produit
   const product = products.find((p) => p.id === Number(id));
 
   if (!product) {
@@ -34,23 +35,32 @@ const ProductDetail: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
-      {/* Image */}
-      <img
-        src={product.image}
-        alt={product.titre}
-        className="w-full h-80 object-cover rounded-lg shadow-md mb-6"
-      />
+      {/* Images */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+        {product.images.length > 0 ? (
+          product.images.map((src, idx) => (
+            <img
+              key={idx}
+              src={src}
+              alt={`${product.titre}-${idx}`}
+              className="w-full h-40 object-cover rounded-lg shadow-md"
+            />
+          ))
+        ) : (
+          <img
+            src="/images/default.jpg"
+            alt="default"
+            className="w-full h-80 object-cover rounded-lg shadow-md mb-6"
+          />
+        )}
+      </div>
 
       {/* Infos principales */}
-      <h1 className="text-3xl font-bold text-blue-700 mb-4">
-        {product.titre}
-      </h1>
+      <h1 className="text-3xl font-bold text-blue-700 mb-4">{product.titre}</h1>
       <p className="text-gray-600 mb-2">{product.categorie}</p>
       <p className="text-blue-600 text-xl font-semibold mb-4">
         {product.prixHoraire} €/heure
       </p>
-
-      {/* Adresse */}
       <p className="text-gray-700 mb-4">📍 {product.adresse}</p>
 
       {/* Caractéristiques */}
@@ -63,14 +73,25 @@ const ProductDetail: React.FC = () => {
         </ul>
       </div>
 
+      {/* Description */}
+      {product.description && (
+        <div className="bg-white p-4 rounded-lg shadow-md mb-6">
+          <h2 className="text-lg font-bold mb-2">Description</h2>
+          <p className="text-gray-700 whitespace-pre-line">
+            {product.description}
+          </p>
+        </div>
+      )}
+
       {/* Loueur */}
       <div className="bg-white p-4 rounded-lg shadow-md mb-6">
         <h2 className="text-lg font-bold mb-2">Loueur</h2>
-        <p>👷 <strong>{product.loueur.nom}</strong></p>
-        {/* ❌ Numéro de téléphone masqué */}
+        <p>
+          🏢 <strong>{product.entreprise}</strong>
+        </p>
       </div>
 
-      {/* Boutons d’action */}
+      {/* Boutons */}
       <div className="flex space-x-4">
         <button
           onClick={() => alert("Réservation en cours...")}
@@ -86,7 +107,7 @@ const ProductDetail: React.FC = () => {
         </button>
       </div>
 
-      {/* Messagerie interne simulée */}
+      {/* Messagerie interne */}
       {showMessageBox && (
         <div className="mt-6 bg-gray-100 p-4 rounded-lg shadow-inner">
           <h3 className="font-bold mb-2">Envoyer un message au loueur</h3>
