@@ -13,7 +13,7 @@ const AjouterAnnonce: React.FC = () => {
     adresse: "",
     caracteristiques: { age: "", puissance: "", poids: "" },
     entreprise: "",
-    description: "", // 👈 champ libre
+    description: "",
     images: [] as string[],
   });
 
@@ -36,11 +36,13 @@ const AjouterAnnonce: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    const fileArray = Array.from(files).slice(0, 5);
+
+    // Concaténer nouvelles images avec les anciennes (limite 5)
+    const fileArray = Array.from(files).slice(0, 5 - form.images.length);
     const urls = fileArray.map((file) => URL.createObjectURL(file));
 
-    setForm({ ...form, images: urls });
-    setPreviewImages(urls);
+    setForm({ ...form, images: [...form.images, ...urls] });
+    setPreviewImages([...previewImages, ...urls]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -173,7 +175,7 @@ const AjouterAnnonce: React.FC = () => {
             name="description"
             value={form.description}
             onChange={handleChange}
-            maxLength={2000} // ≈ 300 mots
+            maxLength={2000}
             className="w-full border rounded px-3 py-2 mt-1 h-32"
             placeholder="Ajoutez une description technique ou des informations complémentaires..."
           />
@@ -214,5 +216,4 @@ const AjouterAnnonce: React.FC = () => {
   );
 };
 
-// 👇 très important pour éviter l’écran blanc
 export default AjouterAnnonce;
