@@ -1,9 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 import { FaBars, FaTimes } from "react-icons/fa";
+import { AuthContext } from "../context/AuthContext";
 
 const Header: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, logout } = useContext(AuthContext);
+
+  // Chemin espace selon rôle
+  const espacePath =
+    user?.role === "loueur" ? "/espace-loueur" : "/espace-locataire";
 
   return (
     <header className="fixed w-full top-0 z-50 bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-lg">
@@ -32,16 +38,39 @@ const Header: React.FC = () => {
           <Link to="/contact" className="hover:text-yellow-300 transition">
             Contact
           </Link>
+
           <div className="flex items-center space-x-4 ml-6">
-            <Link to="/login" className="hover:text-yellow-300 transition">
-              Connexion
-            </Link>
-            <Link
-              to="/signup"
-              className="bg-yellow-400 text-gray-900 px-4 py-2 rounded font-semibold hover:bg-yellow-300 transition"
-            >
-              Inscription
-            </Link>
+            {!user ? (
+              <>
+                <Link to="/login" className="hover:text-yellow-300 transition">
+                  Connexion
+                </Link>
+                <Link
+                  to="/signup"
+                  className="bg-yellow-400 text-gray-900 px-4 py-2 rounded font-semibold hover:bg-yellow-300 transition"
+                >
+                  Inscription
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  to={espacePath}
+                  className="bg-yellow-400 text-gray-900 px-4 py-2 rounded font-semibold hover:bg-yellow-300 transition"
+                >
+                  Mon espace
+                </Link>
+                <span className="font-semibold">
+                  Bonjour, {user.email.split("@")[0]}
+                </span>
+                <button
+                  onClick={logout}
+                  className="bg-red-500 px-3 py-1 rounded hover:bg-red-600 transition"
+                >
+                  Déconnexion
+                </button>
+              </>
+            )}
           </div>
         </nav>
 
@@ -85,16 +114,43 @@ const Header: React.FC = () => {
           <Link to="/contact" onClick={() => setIsOpen(false)}>
             Contact
           </Link>
-          <Link to="/login" onClick={() => setIsOpen(false)}>
-            Connexion
-          </Link>
-          <Link
-            to="/signup"
-            onClick={() => setIsOpen(false)}
-            className="bg-yellow-400 text-gray-900 px-4 py-2 rounded font-semibold hover:bg-yellow-300 transition text-center"
-          >
-            Inscription
-          </Link>
+
+          {!user ? (
+            <>
+              <Link to="/login" onClick={() => setIsOpen(false)}>
+                Connexion
+              </Link>
+              <Link
+                to="/signup"
+                onClick={() => setIsOpen(false)}
+                className="bg-yellow-400 text-gray-900 px-4 py-2 rounded font-semibold hover:bg-yellow-300 transition text-center"
+              >
+                Inscription
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                to={espacePath}
+                onClick={() => setIsOpen(false)}
+                className="bg-yellow-400 text-gray-900 px-4 py-2 rounded font-semibold hover:bg-yellow-300 transition text-center"
+              >
+                Mon espace
+              </Link>
+              <span className="font-semibold">
+                Bonjour, {user.email.split("@")[0]}
+              </span>
+              <button
+                onClick={() => {
+                  logout();
+                  setIsOpen(false);
+                }}
+                className="bg-red-500 px-3 py-2 rounded hover:bg-red-600 transition"
+              >
+                Déconnexion
+              </button>
+            </>
+          )}
         </nav>
       </div>
     </header>

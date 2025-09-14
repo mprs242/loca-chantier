@@ -1,203 +1,181 @@
 import React, { useContext, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ProductContext } from "../context/ProductContext";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination } from "swiper/modules";
-import Zoom from "react-medium-image-zoom";
-import "react-medium-image-zoom/dist/styles.css";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
+import { FaFilter } from "react-icons/fa";
 
 const Products: React.FC = () => {
   const { products } = useContext(ProductContext);
+  const navigate = useNavigate();
 
-  // États des filtres
-  const [selectedCategory, setSelectedCategory] = useState("Tous");
-  const [minPrice, setMinPrice] = useState<number | "">("");
-  const [maxPrice, setMaxPrice] = useState<number | "">("");
-  const [sortBy, setSortBy] = useState("none");
+  // États pour les filtres
+  const [categorie, setCategorie] = useState("all");
+  const [prixMax, setPrixMax] = useState<number | "">("");
+  const [tri, setTri] = useState("");
 
-  // Extraire les catégories
-  const categories = ["Tous", ...new Set(products.map((p) => p.categorie))];
+  // Mobile filter panel
+  const [showFilters, setShowFilters] = useState(false);
 
-  // Filtrer produits
-  let filteredProducts = products.filter((p) => {
-    const matchCategory =
-      selectedCategory === "Tous" || p.categorie === selectedCategory;
-    const matchMin = minPrice === "" || p.prixHoraire >= Number(minPrice);
-    const matchMax = maxPrice === "" || p.prixHoraire <= Number(maxPrice);
-    return matchCategory && matchMin && matchMax;
-  });
+  // Catégories uniques
+  const categories = ["all", ...new Set(products.map((p) => p.categorie))];
 
-  // Trier produits
-  if (sortBy === "price-asc") {
-    filteredProducts = [...filteredProducts].sort(
-      (a, b) => a.prixHoraire - b.prixHoraire
-    );
-  } else if (sortBy === "price-desc") {
-    filteredProducts = [...filteredProducts].sort(
-      (a, b) => b.prixHoraire - a.prixHoraire
-    );
-  } else if (sortBy === "title") {
-    filteredProducts = [...filteredProducts].sort((a, b) =>
-      a.titre.localeCompare(b.titre)
-    );
-  }
+  // Filtrage + tri
+  const produitsFiltres = products
+    .filter((p) => (categorie === "all" ? true : p.categorie === categorie))
+    .filter((p) => (prixMax ? p.prixHoraire <= Number(prixMax) : true))
+    .sort((a, b) => {
+      if (tri === "asc") return a.prixHoraire - b.prixHoraire;
+      if (tri === "desc") return b.prixHoraire - a.prixHoraire;
+      return 0;
+    });
+
+  // Composant filtres
+  const Filters = () => (
+    <div className="flex flex-col md:flex-row md:items-end md:space-x-6 space-y-4 md:space-y-0 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-md rounded-lg p-4">
+      {/* Catégorie */}
+      <div className="flex-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-1">
+          Catégorie
+        </label>
+        <select
+          value={categorie}
+          onChange={(e) => setCategorie(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400"
+        >
+          {categories.map((cat, idx) => (
+            <option key={idx} value={cat}>
+              {cat === "all" ? "Toutes les catégories" : cat}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Prix max */}
+      <div className="flex-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-1">
+          Prix max (€ / heure)
+        </label>
+        <input
+          type="number"
+          value={prixMax}
+          onChange={(e) =>
+            setPrixMax(e.target.value ? Number(e.target.value) : "")
+          }
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400"
+          placeholder="Ex: 150"
+        />
+      </div>
+
+      {/* Tri */}
+      <div className="flex-1">
+        <label className="block text-sm font-semibold text-gray-700 mb-1">
+          Trier par
+        </label>
+        <select
+          value={tri}
+          onChange={(e) => setTri(e.target.value)}
+          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400"
+        >
+          <option value="">Aucun</option>
+          <option value="asc">Prix croissant</option>
+          <option value="desc">Prix décroissant</option>
+        </select>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
-      <h1 className="text-4xl font-extrabold text-blue-700 mb-10 text-center">
+      <h1 className="text-3xl font-extrabold text-blue-700 mb-6 text-center">
         🚜 Nos matériels disponibles
       </h1>
 
-      {/* Filtres */}
-      <div className="bg-white shadow-md p-6 rounded-lg mb-10">
-        <h2 className="text-xl font-bold mb-4 text-gray-800">🎯 Filtres</h2>
-
-        {/* Catégories */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                selectedCategory === cat
-                  ? "bg-blue-600 text-white shadow"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        {/* Prix + Tri */}
-        <div className="flex flex-wrap items-end gap-6">
-          <div>
-            <label className="block text-sm text-gray-600">Prix min (€)</label>
-            <input
-              type="number"
-              value={minPrice}
-              onChange={(e) =>
-                setMinPrice(e.target.value ? Number(e.target.value) : "")
-              }
-              className="w-32 border rounded px-3 py-2 focus:ring focus:ring-blue-300"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-600">Prix max (€)</label>
-            <input
-              type="number"
-              value={maxPrice}
-              onChange={(e) =>
-                setMaxPrice(e.target.value ? Number(e.target.value) : "")
-              }
-              className="w-32 border rounded px-3 py-2 focus:ring focus:ring-blue-300"
-            />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-600">Trier par</label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="border rounded px-3 py-2 focus:ring focus:ring-blue-300"
-            >
-              <option value="none">Aucun</option>
-              <option value="price-asc">Prix croissant</option>
-              <option value="price-desc">Prix décroissant</option>
-              <option value="title">Nom (A-Z)</option>
-            </select>
-          </div>
-        </div>
+      {/* Bouton filtres mobile */}
+      <div className="md:hidden flex justify-end mb-4">
+        <button
+          onClick={() => setShowFilters(true)}
+          className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700"
+        >
+          <FaFilter /> <span>Filtres</span>
+        </button>
       </div>
 
-      {/* Produits */}
-      {filteredProducts.length === 0 ? (
-        <p className="text-center text-gray-500">
-          Aucun produit trouvé avec ces filtres.
+      {/* Filtres desktop */}
+      <div className="hidden md:block mb-8">
+        <Filters />
+      </div>
+
+      {/* Panel mobile */}
+      {showFilters && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-end z-50">
+          <div className="w-80 bg-white h-full shadow-lg p-6 overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-bold text-blue-700">Filtres</h2>
+              <button
+                onClick={() => setShowFilters(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✖
+              </button>
+            </div>
+            <Filters />
+            <button
+              onClick={() => setShowFilters(false)}
+              className="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+            >
+              ✅ Appliquer
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Grille des produits */}
+      {produitsFiltres.length === 0 ? (
+        <p className="text-center text-gray-600 mt-8">
+          Aucun produit ne correspond à vos filtres.
         </p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {filteredProducts.map((p) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {produitsFiltres.map((product) => (
             <div
-              key={p.id}
-              className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl transition transform hover:-translate-y-1"
+              key={product.id}
+              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition transform hover:scale-[1.02]"
             >
-              {/* Images avec carrousel si plusieurs */}
-              {p.images.length > 1 ? (
-                <Swiper
-                  modules={[Navigation, Pagination]}
-                  navigation
-                  pagination={{ clickable: true }}
-                  className="h-48 w-full"
-                >
-                  {p.images.map((img, idx) => (
-                    <SwiperSlide key={idx}>
-                      <Zoom>
-                        <img
-                          src={img}
-                          alt={`${p.titre}-${idx}`}
-                          className="h-48 w-full object-cover"
-                        />
-                      </Zoom>
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
-              ) : p.images.length === 1 ? (
-                <Zoom>
-                  <img
-                    src={p.images[0]}
-                    alt={p.titre}
-                    className="h-48 w-full object-cover"
-                  />
-                </Zoom>
-              ) : (
-                <div className="h-48 bg-gray-200 flex items-center justify-center text-gray-500">
-                  Pas d’image
-                </div>
-              )}
+              {/* Image */}
+              <img
+                src={product.images[0]}
+                alt={product.titre}
+                className="w-full h-48 object-cover"
+              />
 
               {/* Infos */}
               <div className="p-5">
-                <h2 className="text-lg font-bold text-gray-800">{p.titre}</h2>
-
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-blue-700 font-bold text-lg">
-                    {p.prixHoraire} €/h
-                  </span>
-                  <span className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full">
-                    {p.categorie}
-                  </span>
-                </div>
-
-                <p className="text-sm text-gray-500 mt-1">📍 {p.adresse}</p>
-                <p className="text-sm text-gray-700 font-medium mt-1">
-                  🏢 {p.entreprise}
+                <h2 className="text-xl font-bold text-gray-800 mb-1">
+                  {product.titre}
+                </h2>
+                <p className="text-blue-600 font-semibold mb-2">
+                  {product.prixHoraire} €/heure
+                </p>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  {product.description || "Aucune description"}
                 </p>
 
-                {/* Aperçu description */}
-                {p.description && (
-                  <p className="text-gray-600 text-sm mt-3">
-                    {p.description.length > 100
-                      ? p.description.slice(0, 100) + "..."
-                      : p.description}
-                  </p>
-                )}
-
                 {/* Boutons */}
-                <div className="flex justify-between mt-5">
+                <div className="flex space-x-3">
                   <Link
-                    to={`/product/${p.id}`}
-                    className="bg-blue-600 text-white px-3 py-2 rounded-md text-sm hover:bg-blue-700 transition"
+                    to={`/product/${product.id}`}
+                    className="flex-1 bg-gray-100 text-gray-800 py-2 rounded text-center hover:bg-gray-200 transition"
                   >
-                    Voir détails
+                    🔍 Détails
                   </Link>
-                  <button className="bg-green-600 text-white px-3 py-2 rounded-md text-sm hover:bg-green-700 transition">
-                    Réserver
-                  </button>
-                  <button className="bg-gray-600 text-white px-3 py-2 rounded-md text-sm hover:bg-gray-700 transition">
-                    Contacter
+                  <button
+                    onClick={() =>
+                      navigate(`/product/${product.id}`, {
+                        state: { openReservation: true },
+                      })
+                    }
+                    className="flex-1 bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
+                  >
+                    📅 Réserver
                   </button>
                 </div>
               </div>
