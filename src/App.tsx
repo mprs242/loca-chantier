@@ -12,10 +12,13 @@ import Contact from "./pages/Contact";
 import EspaceLoueur from "./pages/EspaceLoueur";
 import EspaceLocataire from "./pages/EspaceLocataire";
 import AjouterAnnonce from "./pages/AjouterAnnonce";
+import ReservationSuccess from "./pages/ReservationSuccess";
+import MesReservations from "./pages/MesReservations"; // ✅ import ajouté
+import { ReservationProvider } from "./context/ReservationContext";
 
 const App: React.FC = () => {
   return (
-    <>
+    <ReservationProvider>
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -28,9 +31,12 @@ const App: React.FC = () => {
         <Route path="/espace-loueur" element={<EspaceLoueur />} />
         <Route path="/espace-locataire" element={<EspaceLocataire />} />
         <Route path="/ajouter-annonce" element={<AjouterAnnonce />} />
+        <Route path="/reservation-success" element={<ReservationSuccess />} />
+        <Route path="/mes-reservations" element={<MesReservations />} />{" "}
+        {/* ✅ nouvelle route */}
       </Routes>
       <Footer />
-    </>
+    </ReservationProvider>
   );
 };
 

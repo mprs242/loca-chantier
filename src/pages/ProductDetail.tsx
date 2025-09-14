@@ -1,7 +1,8 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { ProductContext } from "../context/ProductContext";
 import { AuthContext } from "../context/AuthContext";
+import { ReservationContext } from "../context/ReservationContext"; // ✅ ajout
 import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -17,6 +18,7 @@ const ProductDetail: React.FC = () => {
   const location = useLocation();
   const { products } = useContext(ProductContext);
   const { user } = useContext(AuthContext);
+  const { addReservation } = useContext(ReservationContext); // ✅ ajout
 
   const [showMessageBox, setShowMessageBox] = useState(false);
   const [showReservation, setShowReservation] = useState(
@@ -31,16 +33,28 @@ const ProductDetail: React.FC = () => {
     adresse: "",
     date: "",
     duree: "",
-    livraison: "retrait", // valeur par défaut
+    livraison: "retrait",
   });
 
-  // 🔔 Nouveau : état pour le modal
   const [modal, setModal] = useState<{
     type: "error" | "success";
     message: string;
   } | null>(null);
 
   const product = products.find((p) => p.id === Number(id));
+
+  // Pré-remplissage si réservation en attente
+  useEffect(() => {
+    const pending = localStorage.getItem("pendingReservation");
+    if (pending) {
+      const { reservation: savedReservation, productId } = JSON.parse(pending);
+      if (productId === Number(id)) {
+        setReservation(savedReservation);
+        setShowReservation(true);
+        localStorage.removeItem("pendingReservation");
+      }
+    }
+  }, [id]);
 
   if (!product) {
     return (
@@ -65,7 +79,6 @@ const ProductDetail: React.FC = () => {
       navigate("/login");
       return;
     }
-
     setModal({
       type: "success",
       message: `Votre message a été envoyé au loueur : "${message}"`,
@@ -78,6 +91,10 @@ const ProductDetail: React.FC = () => {
     e.preventDefault();
 
     if (!user) {
+      localStorage.setItem(
+        "pendingReservation",
+        JSON.stringify({ productId: product.id, reservation })
+      );
       setModal({
         type: "error",
         message: "❌ Vous devez être connecté pour réserver.",
@@ -86,11 +103,19 @@ const ProductDetail: React.FC = () => {
       return;
     }
 
-    setModal({
-      type: "success",
-      message: `✅ Réservation confirmée pour ${reservation.nom} le ${reservation.date} (${reservation.duree}h). Mode : ${reservation.livraison}`,
+    // ✅ Sauvegarde dans le contexte
+    addReservation({
+      ...reservation,
+      productId: product.id,
+      produit: product.titre,
+      prixHoraire: product.prixHoraire,
+      total: prixTotal,
     });
 
+    // ✅ Redirection vers la page succès
+    navigate("/reservation-success");
+
+    // Reset form
     setShowReservation(false);
     setReservation({
       nom: "",
@@ -102,7 +127,6 @@ const ProductDetail: React.FC = () => {
     });
   };
 
-  // Calcul prix total
   const prixTotal =
     reservation.duree && !isNaN(Number(reservation.duree))
       ? Number(reservation.duree) * product.prixHoraire
@@ -146,7 +170,6 @@ const ProductDetail: React.FC = () => {
       <p className="text-blue-600 text-xl font-semibold mb-4">
         {product.prixHoraire} €/heure
       </p>
-
       <p className="text-gray-700 mb-4">📍 {product.adresse}</p>
 
       {/* Description */}
@@ -165,37 +188,18 @@ const ProductDetail: React.FC = () => {
         </p>
       </div>
 
-      {/* Boutons actions */}
+      {/* Actions */}
       <div className="flex space-x-4">
         <button
-          onClick={() => {
-            if (!user) {
-              setModal({
-                type: "error",
-                message: "❌ Vous devez être connecté pour réserver.",
-              });
-              navigate("/login");
-            } else {
-              setShowReservation(true);
-            }
-          }}
+          onClick={() =>
+            !user ? navigate("/login") : setShowReservation(true)
+          }
           className="flex-1 bg-green-600 text-white py-3 rounded-lg text-lg hover:bg-green-700"
         >
           📅 Réserver
         </button>
         <button
-          onClick={() => {
-            if (!user) {
-              setModal({
-                type: "error",
-                message:
-                  "❌ Vous devez être connecté pour contacter le loueur.",
-              });
-              navigate("/login");
-            } else {
-              setShowMessageBox(true);
-            }
-          }}
+          onClick={() => (!user ? navigate("/login") : setShowMessageBox(true))}
           className="flex-1 bg-blue-600 text-white py-3 rounded-lg text-lg hover:bg-blue-700"
         >
           📩 Contacter le loueur
@@ -228,7 +232,6 @@ const ProductDetail: React.FC = () => {
                 className="w-full border rounded-lg px-3 py-2"
                 required
               />
-
               <input
                 type="email"
                 placeholder="Email"
@@ -239,7 +242,6 @@ const ProductDetail: React.FC = () => {
                 className="w-full border rounded-lg px-3 py-2"
                 required
               />
-
               <input
                 type="text"
                 placeholder="Adresse"
@@ -250,7 +252,6 @@ const ProductDetail: React.FC = () => {
                 className="w-full border rounded-lg px-3 py-2"
                 required
               />
-
               <input
                 type="date"
                 value={reservation.date}
@@ -260,7 +261,6 @@ const ProductDetail: React.FC = () => {
                 className="w-full border rounded-lg px-3 py-2"
                 required
               />
-
               <input
                 type="number"
                 min="1"
@@ -352,7 +352,7 @@ const ProductDetail: React.FC = () => {
         </div>
       )}
 
-      {/* Affichage du ModalMessage */}
+      {/* ModalMessage */}
       {modal && (
         <ModalMessage
           type={modal.type}
