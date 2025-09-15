@@ -1,19 +1,60 @@
 import React, { useState } from "react";
 
+type Annonce = {
+  id: number;
+  titre: string;
+  categorie: string;
+  prixHoraire: number;
+  adresse: string;
+};
+
 const EspaceLoueur: React.FC = () => {
   const [activeTab, setActiveTab] = useState("entreprise");
   const [type, setType] = useState<"pro" | "particulier">("particulier");
 
-  const tabs = [
-    { key: "entreprise", label: "🏢 Entreprise" },
-    { key: "annonces", label: "📢 Annonces" },
-    { key: "finances", label: "💰 Finances" },
-    { key: "factures", label: "📄 Factures" },
-    { key: "paiements", label: "✅ Paiements" },
-    { key: "paiement-info", label: "💳 Infos paiement" },
-    { key: "reservations", label: "📅 Réservations" }, // 🆕
-    { key: "conversations", label: "💬 Conversations" },
-  ];
+  // --- Annonces ---
+  const [annonces, setAnnonces] = useState<Annonce[]>([
+    {
+      id: 1,
+      titre: "Pelleteuse Caterpillar",
+      categorie: "Pelleteuse",
+      prixHoraire: 120,
+      adresse: "Nantes",
+    },
+  ]);
+  const [newAnnonce, setNewAnnonce] = useState<Annonce>({
+    id: Date.now(),
+    titre: "",
+    categorie: "",
+    prixHoraire: 0,
+    adresse: "",
+  });
+  const [editingAnnonce, setEditingAnnonce] = useState<Annonce | null>(null);
+
+  const handleAddAnnonce = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingAnnonce) {
+      setAnnonces(
+        annonces.map((a) =>
+          a.id === editingAnnonce.id ? { ...editingAnnonce } : a
+        )
+      );
+      setEditingAnnonce(null);
+    } else {
+      setAnnonces([...annonces, { ...newAnnonce, id: Date.now() }]);
+      setNewAnnonce({
+        id: Date.now(),
+        titre: "",
+        categorie: "",
+        prixHoraire: 0,
+        adresse: "",
+      });
+    }
+  };
+
+  const handleDelete = (id: number) => {
+    setAnnonces(annonces.filter((a) => a.id !== id));
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
@@ -28,7 +69,16 @@ const EspaceLoueur: React.FC = () => {
           onChange={(e) => setActiveTab(e.target.value)}
           className="w-full border rounded px-3 py-2"
         >
-          {tabs.map((tab) => (
+          {[
+            { key: "entreprise", label: "🏢 Entreprise" },
+            { key: "annonces", label: "📢 Annonces" },
+            { key: "finances", label: "💰 Finances" },
+            { key: "factures", label: "📄 Factures" },
+            { key: "paiements", label: "✅ Paiements" },
+            { key: "paiement-info", label: "💳 Infos paiement" },
+            { key: "reservations", label: "📅 Réservations" },
+            { key: "conversations", label: "💬 Conversations" },
+          ].map((tab) => (
             <option key={tab.key} value={tab.key}>
               {tab.label}
             </option>
@@ -38,7 +88,16 @@ const EspaceLoueur: React.FC = () => {
 
       {/* Onglets desktop */}
       <div className="hidden md:flex space-x-2 border-b border-gray-200 mb-6">
-        {tabs.map((tab) => (
+        {[
+          { key: "entreprise", label: "🏢 Entreprise" },
+          { key: "annonces", label: "📢 Annonces" },
+          { key: "finances", label: "💰 Finances" },
+          { key: "factures", label: "📄 Factures" },
+          { key: "paiements", label: "✅ Paiements" },
+          { key: "paiement-info", label: "💳 Infos paiement" },
+          { key: "reservations", label: "📅 Réservations" },
+          { key: "conversations", label: "💬 Conversations" },
+        ].map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
@@ -55,6 +114,7 @@ const EspaceLoueur: React.FC = () => {
 
       {/* Contenu des onglets */}
       <div className="bg-white shadow rounded-lg p-6 min-h-[400px]">
+        {/* --- ENTREPRISE --- */}
         {activeTab === "entreprise" && (
           <form className="space-y-4 max-w-lg">
             <h2 className="text-xl font-bold text-gray-800 mb-4">
@@ -120,9 +180,140 @@ const EspaceLoueur: React.FC = () => {
           </form>
         )}
 
+        {/* --- ANNONCES --- */}
         {activeTab === "annonces" && (
-          <p className="text-gray-600">📢 Gestion des annonces ici.</p>
+          <div>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">
+              Mes annonces
+            </h2>
+
+            {/* Liste annonces */}
+            <div className="grid gap-4 mb-6 sm:grid-cols-2 lg:grid-cols-3">
+              {annonces.map((annonce) => (
+                <div
+                  key={annonce.id}
+                  className="border rounded-lg p-4 shadow-sm hover:shadow-md transition bg-gray-50 flex flex-col"
+                >
+                  <h3 className="font-semibold text-lg text-blue-700 mb-1">
+                    {annonce.titre}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-1">
+                    📂 {annonce.categorie}
+                  </p>
+                  <p className="text-gray-600 text-sm mb-1">
+                    📍 {annonce.adresse}
+                  </p>
+                  <p className="text-green-700 font-bold mb-3">
+                    {annonce.prixHoraire} €/h
+                  </p>
+                  <div className="mt-auto flex space-x-2">
+                    <button
+                      onClick={() => setEditingAnnonce(annonce)}
+                      className="flex-1 bg-yellow-400 text-gray-900 py-1 rounded hover:bg-yellow-300 text-sm"
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      onClick={() => handleDelete(annonce.id)}
+                      className="flex-1 bg-red-500 text-white py-1 rounded hover:bg-red-600 text-sm"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Formulaire ajout / édition */}
+            <form
+              onSubmit={handleAddAnnonce}
+              className="space-y-4 bg-gray-50 p-4 rounded-lg shadow"
+            >
+              <h3 className="font-semibold text-lg text-gray-700">
+                {editingAnnonce
+                  ? "Modifier l’annonce"
+                  : "Ajouter une nouvelle annonce"}
+              </h3>
+              <input
+                type="text"
+                placeholder="Titre"
+                value={editingAnnonce ? editingAnnonce.titre : newAnnonce.titre}
+                onChange={(e) =>
+                  editingAnnonce
+                    ? setEditingAnnonce({
+                        ...editingAnnonce,
+                        titre: e.target.value,
+                      })
+                    : setNewAnnonce({ ...newAnnonce, titre: e.target.value })
+                }
+                className="w-full border rounded px-3 py-2"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Catégorie"
+                value={
+                  editingAnnonce ? editingAnnonce.categorie : newAnnonce.categorie
+                }
+                onChange={(e) =>
+                  editingAnnonce
+                    ? setEditingAnnonce({
+                        ...editingAnnonce,
+                        categorie: e.target.value,
+                      })
+                    : setNewAnnonce({ ...newAnnonce, categorie: e.target.value })
+                }
+                className="w-full border rounded px-3 py-2"
+                required
+              />
+              <input
+                type="number"
+                placeholder="Prix horaire"
+                value={
+                  editingAnnonce
+                    ? editingAnnonce.prixHoraire
+                    : newAnnonce.prixHoraire
+                }
+                onChange={(e) =>
+                  editingAnnonce
+                    ? setEditingAnnonce({
+                        ...editingAnnonce,
+                        prixHoraire: Number(e.target.value),
+                      })
+                    : setNewAnnonce({
+                        ...newAnnonce,
+                        prixHoraire: Number(e.target.value),
+                      })
+                }
+                className="w-full border rounded px-3 py-2"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Adresse"
+                value={
+                  editingAnnonce ? editingAnnonce.adresse : newAnnonce.adresse
+                }
+                onChange={(e) =>
+                  editingAnnonce
+                    ? setEditingAnnonce({
+                        ...editingAnnonce,
+                        adresse: e.target.value,
+                      })
+                    : setNewAnnonce({ ...newAnnonce, adresse: e.target.value })
+                }
+                className="w-full border rounded px-3 py-2"
+                required
+              />
+
+              <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                {editingAnnonce ? "Enregistrer" : "Ajouter"}
+              </button>
+            </form>
+          </div>
         )}
+
+        {/* --- AUTRES ONGLET (vides pour l'instant) --- */}
         {activeTab === "finances" && (
           <p className="text-gray-600">💰 Vue d’ensemble de vos finances.</p>
         )}
@@ -134,44 +325,12 @@ const EspaceLoueur: React.FC = () => {
         )}
         {activeTab === "paiement-info" && (
           <p className="text-gray-600">
-            💳 Renseignez vos informations bancaires pour recevoir vos
-            paiements.
+            💳 Renseignez vos informations bancaires pour recevoir vos paiements.
           </p>
         )}
-
-        {/* 🆕 Onglet Réservations */}
         {activeTab === "reservations" && (
-          <div>
-            <h2 className="text-xl font-bold text-gray-800 mb-4">
-              Mes réservations
-            </h2>
-            <ul className="space-y-3">
-              <li className="p-3 border rounded flex justify-between items-center">
-                <div>
-                  <p className="font-semibold">Pelleteuse Caterpillar</p>
-                  <p className="text-sm text-gray-600">
-                    Client : Jean Dupont — 12/03/2025 (3h)
-                  </p>
-                </div>
-                <span className="px-3 py-1 rounded text-sm bg-yellow-100 text-yellow-700">
-                  En attente
-                </span>
-              </li>
-              <li className="p-3 border rounded flex justify-between items-center">
-                <div>
-                  <p className="font-semibold">Chargeuse Volvo</p>
-                  <p className="text-sm text-gray-600">
-                    Client : Marie Curie — 10/03/2025 (5h)
-                  </p>
-                </div>
-                <span className="px-3 py-1 rounded text-sm bg-green-100 text-green-700">
-                  Confirmée
-                </span>
-              </li>
-            </ul>
-          </div>
+          <p className="text-gray-600">📅 Gestion des réservations ici.</p>
         )}
-
         {activeTab === "conversations" && (
           <p className="text-gray-600">
             💬 Messagerie interne avec vos clients.
